@@ -1,4 +1,5 @@
 #version 450
+#extension GL_EXT_debug_printf : enable
 /* Copyright (c) 2020, Sascha Willems
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -25,5 +26,5 @@ layout (location = 0) out vec4 outColor;
 
 void main() 
 {
-	outColor = texture(samplerColor0, inUV);
+	outColor = vec4(1.0,1.0,1.0, 1.0);
 }

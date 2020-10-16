@@ -1,4 +1,5 @@
 #version 450
+#extension GL_EXT_debug_printf : enable
 /* Copyright (c) 2020, Sascha Willems
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -26,5 +27,6 @@ out gl_PerVertex
 void main() 
 {
 	outUV = vec2((gl_VertexIndex << 1) & 2, gl_VertexIndex & 2);
+	debugPrintfEXT("Hit");
 	gl_Position = vec4(outUV * 2.0f - 1.0f, 0.0f, 1.0f);
 }

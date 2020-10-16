@@ -40,6 +40,10 @@ VKAPI_ATTR VkBool32 VKAPI_CALL debug_utils_messenger_callback(VkDebugUtilsMessag
 	{
 		LOGE("{} - {}: {}", callback_data->messageIdNumber, callback_data->pMessageIdName, callback_data->pMessage);
 	}
+    else if (message_severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT)
+    {
+        printf("\nFollow this command: %s", callback_data->pMessage);
+    }
 	return VK_FALSE;
 }
 
@@ -198,6 +202,23 @@ Instance::Instance(const std::string &                           application_nam
 		}
 	}
 
+    if(true){
+        bool semantic_extension = false;
+        for (auto &available_extension : available_instance_extensions)
+        {
+            if (strcmp(available_extension.extensionName, VK_KHR_SHADER_NON_SEMANTIC_INFO_EXTENSION_NAME) == 0)
+            {
+                semantic_extension = true;
+                LOGI("{} is available, enabling it", VK_KHR_SHADER_NON_SEMANTIC_INFO_EXTENSION_NAME);
+                enabled_extensions.push_back(VK_KHR_SHADER_NON_SEMANTIC_INFO_EXTENSION_NAME);
+            }
+        }
+        if (!semantic_extension)
+        {
+            LOGW("{} is not available, cant open lalalalalla", VK_KHR_SHADER_NON_SEMANTIC_INFO_EXTENSION_NAME);
+        }
+    }
+
 	auto extension_error = false;
 	for (auto extension : required_extensions)
 	{
@@ -277,18 +298,33 @@ Instance::Instance(const std::string &                           application_nam
 	VkDebugReportCallbackCreateInfoEXT debug_report_create_info = {VK_STRUCTURE_TYPE_DEBUG_REPORT_CREATE_INFO_EXT};
 	if (debug_utils)
 	{
-		debug_utils_create_info.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT;
+		debug_utils_create_info.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT |VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT| VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT;
 		debug_utils_create_info.messageType     = VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT;
 		debug_utils_create_info.pfnUserCallback = debug_utils_messenger_callback;
 
-		instance_info.pNext = &debug_utils_create_info;
+        VkValidationFeaturesEXT validationFeatures	= {};
+        validationFeatures.sType					= VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT;
+
+        VkValidationFeatureEnableEXT enabledValidationFeatures[] =
+            {
+                VK_VALIDATION_FEATURE_ENABLE_DEBUG_PRINTF_EXT
+            };
+            validationFeatures.pEnabledValidationFeatures		= enabledValidationFeatures;
+            validationFeatures.enabledValidationFeatureCount	= 1;
+        const char* pKhronosValidationLayerName = "VK_LAYER_KHRONOS_validation";
+
+
+        debug_utils_create_info.pNext = &validationFeatures;
+        instance_info.enabledLayerCount    = 1;
+        instance_info.ppEnabledLayerNames  = &pKhronosValidationLayerName;
+        instance_info.pNext = &debug_utils_create_info;
 	}
 	else
 	{
-		debug_report_create_info.flags       = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT;
+		debug_report_create_info.flags       = VK_DEBUG_REPORT_ERROR_BIT_EXT |VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT;
 		debug_report_create_info.pfnCallback = debug_callback;
 
-		instance_info.pNext = &debug_report_create_info;
+//		instance_info.pNext = &debug_report_create_info;
 	}
 #endif
 
